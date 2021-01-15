@@ -53,11 +53,31 @@ class ChatUser {
    * */
 
   handleChat(text) {
-    this.room.broadcast({
+    if (text === "/joke") {
+      this.handleJoke();
+    } else {
+      this.room.broadcast({
+        name: this.name,
+        type: "chat",
+        text: text,
+      });
+    }
+  }
+
+  /**
+   * Handle a joke: broadcast random joke only to that
+   * user in the room
+   **/
+
+  handleJoke() {
+    // can add random joke from API later if we want
+    const joke =
+      "Where do you take someone who has been injured in a Peek-a-boo accident? To the I.C.U.";
+    this.send(JSON.stringify({
       name: this.name,
-      type: "chat",
-      text: text,
-    });
+      type: "chat",  
+      text: joke
+    }));
   }
 
   /** Handle messages from client:
