@@ -61,9 +61,11 @@ class ChatUser {
       this.handleMembers();
     } else if (splitText[0] === "/priv") {
       if (splitText.length < 3 || !splitText[2]) throw new Error(`Incorrect private message format`);
-      
       const privMsg = splitText.slice(2).join(" ");
       this.handlePrivateMessage(splitText[1], privMsg);
+    } else if (splitText[0] === "/name") {
+      if (splitText.length < 2 || !splitText[1]) throw new Error(`Incorrect name change format`);
+      this.handleNameChange(splitText[1]);
     } else {
       this.room.broadcast({
         name: this.name,
@@ -132,6 +134,23 @@ class ChatUser {
     throw new Error(`User does not exist: ${username}`)
 
   }
+
+  /**
+   * Handle "/members" message: broadcast list of members in the room only
+   * to the user who wrote "/message"
+   **/
+
+  handleNameChange(newUsername) {
+    const oldUsername = this.name;
+    this.name = newUsername;
+    
+    this.room.broadcast({
+      type: "note",
+      text: `${oldUsername} is now ${this.name}`
+    });
+    
+  }
+
 
   /** Handle messages from client:
    *
