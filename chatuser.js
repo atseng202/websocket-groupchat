@@ -53,8 +53,17 @@ class ChatUser {
    * */
 
   handleChat(text) {
-    if (text === "/joke") {
+    const splitText = text.split(" ");
+    
+    if (splitText[0] === "/joke") {
       this.handleJoke();
+    } else if (splitText[0] === "/members") {
+      this.handleMembers();
+    } else if (splitText[0] === "/priv") {
+      if (splitText.length < 3 || !splitText[2]) throw new Error(`Incorrect private message format`);
+      
+      const privMsg = splitText.slice(2).join(" ");
+      this.handlePrivateMessage(splitText[1], privMsg);
     } else {
       this.room.broadcast({
         name: this.name,
@@ -65,8 +74,8 @@ class ChatUser {
   }
 
   /**
-   * Handle a joke: broadcast random joke only to that
-   * user in the room
+   * Handle "/joke" message: broadcast random joke only to 
+   * user who wrote "/joke"
    **/
 
   handleJoke() {
@@ -75,9 +84,53 @@ class ChatUser {
       "Where do you take someone who has been injured in a Peek-a-boo accident? To the I.C.U.";
     this.send(JSON.stringify({
       name: this.name,
-      type: "chat",  
+      type: "chat",
       text: joke
     }));
+  }
+
+  /**
+   * Handle "/members" message: broadcast list of members in the room only
+   * to the user who wrote "/message"
+   **/
+
+  handleMembers() {
+    const members = this.room.members;
+    const usernames = [];
+
+    for (let member of members) {
+      usernames.push(member.name);
+    }
+
+    this.send(JSON.stringify({
+      type: "note",
+      text: "In room: " + usernames.join(", ")
+    }));
+  }
+
+  /**
+   * Handle "/members" message: broadcast list of members in the room only
+   * to the user who wrote "/message"
+   **/
+
+  handlePrivateMessage(username, message) {
+    const members = this.room.members;
+    let user;
+
+    for (let member of members) {
+      if (member.name === username) {
+        user = member;
+        user.send(JSON.stringify({
+          name: `${this.name} (Private)`,
+          type: "chat",
+          text: message
+        }));
+
+        return;
+      } 
+    }
+    throw new Error(`User does not exist: ${username}`)
+
   }
 
   /** Handle messages from client:
